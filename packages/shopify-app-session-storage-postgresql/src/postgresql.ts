@@ -1,5 +1,4 @@
 import {Pool} from 'pg';
-import {parse} from 'pg-connection-string';
 import {Session} from '@shopify/shopify-api';
 import {SessionStorage} from '@shopify/shopify-app-session-storage';
 
@@ -34,7 +33,6 @@ export class PostgreSQLSessionStorage implements SessionStorage {
   public readonly ready: Promise<void>;
   private options: PostgreSQLSessionStorageOptions;
   private pool: Pool;
-  private database: string;
 
   constructor(
     private dbUrl: URL,
@@ -45,9 +43,6 @@ export class PostgreSQLSessionStorage implements SessionStorage {
     }
     this.options = {...defaultPostgreSQLSessionStorageOptions, ...opts};
     this.ready = this.init();
-
-    const config = parse(dbUrl.toString());
-    this.database = config.database || 'postgres';
   }
 
   public async storeSession(session: Session): Promise<boolean> {
@@ -131,10 +126,6 @@ export class PostgreSQLSessionStorage implements SessionStorage {
   private async init() {
     this.pool = new Pool({connectionString: this.dbUrl.toString()});
     await this.createTable();
-  }
-
-  private async connectClient(): Promise<void> {
-    await this.client.connect();
   }
 
   private async createTable() {
